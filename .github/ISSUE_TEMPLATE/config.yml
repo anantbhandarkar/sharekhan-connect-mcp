@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/sharekhan-mcp/sharekhan-connect-mcp/discussions
+    about: Please ask and answer questions here.
+  - name: Sharekhan API Documentation
+    url: https://www.sharekhan.com/api-documentation
+    about: For Sharekhan API related questions, please check the official documentation.

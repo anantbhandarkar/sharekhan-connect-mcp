@@ -1,0 +1,192 @@
+{
+  "name": "Sharekhan Connect MCP Server",
+  "description": "MCP integration for Sharekhan trading APIs",
+  "version": "1.0.0",
+  "author": "Sharekhan MCP Team",
+  "license": "MIT",
+  "homepage": "https://github.com/sharekhan-mcp/sharekhan-connect-mcp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sharekhan-mcp/sharekhan-connect-mcp.git"
+  },
+  "mcp_version": "1.0.0",
+  "server": {
+    "command": "uvx",
+    "args": ["sharekhan-connect-mcp"],
+    "env": {
+      "PYTHONPATH": "."
+    }
+  },
+  "tools": [
+    {
+      "name": "place_order",
+      "description": "Place a trading order on Sharekhan",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "exchange": {"type": "string", "description": "Exchange name (NSE, BSE)"},
+          "scrip_code": {"type": "string", "description": "Security code"},
+          "quantity": {"type": "integer", "description": "Order quantity"},
+          "price": {"type": "number", "description": "Order price (optional for market orders)"},
+          "transaction_type": {"type": "string", "enum": ["BUY", "SELL"], "description": "BUY or SELL"},
+          "order_type": {"type": "string", "enum": ["MARKET", "LIMIT", "SL", "SL-M"], "description": "Order type"},
+          "product": {"type": "string", "enum": ["NRML", "MIS", "CNC"], "description": "Product type"},
+          "validity": {"type": "string", "enum": ["DAY", "IOC"], "description": "Order validity"},
+          "customer_id": {"type": "string", "description": "Customer ID", "default": "12345"}
+        },
+        "required": ["exchange", "scrip_code", "quantity", "transaction_type", "order_type", "product"]
+      }
+    },
+    {
+      "name": "cancel_order",
+      "description": "Cancel an existing order",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "order_id": {"type": "string", "description": "Order ID to cancel"}
+        },
+        "required": ["order_id"]
+      }
+    },
+    {
+      "name": "modify_order",
+      "description": "Modify an existing order",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "order_id": {"type": "string", "description": "Order ID to modify"},
+          "price": {"type": "number", "description": "New price"},
+          "quantity": {"type": "integer", "description": "New quantity"},
+          "order_type": {"type": "string", "enum": ["MARKET", "LIMIT", "SL", "SL-M"], "description": "New order type"}
+        },
+        "required": ["order_id"]
+      }
+    },
+    {
+      "name": "get_holdings",
+      "description": "Get customer holdings",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "customer_id": {"type": "string", "description": "Customer ID", "default": "12345"}
+        }
+      }
+    },
+    {
+      "name": "get_positions",
+      "description": "Get customer positions",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "customer_id": {"type": "string", "description": "Customer ID", "default": "12345"}
+        }
+      }
+    },
+    {
+      "name": "get_orders",
+      "description": "Get order book",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "customer_id": {"type": "string", "description": "Customer ID (optional)"}
+        }
+      }
+    },
+    {
+      "name": "get_trades",
+      "description": "Get trade history",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "customer_id": {"type": "string", "description": "Customer ID", "default": "12345"}
+        }
+      }
+    },
+    {
+      "name": "get_historical_data",
+      "description": "Get historical market data",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "exchange": {"type": "string", "description": "Exchange name"},
+          "scrip_code": {"type": "string", "description": "Security code"},
+          "interval": {"type": "string", "description": "Time interval (1minute, 5minute, day)"},
+          "from_date": {"type": "string", "description": "From date (YYYY-MM-DD)"},
+          "to_date": {"type": "string", "description": "To date (YYYY-MM-DD)"}
+        },
+        "required": ["exchange", "scrip_code", "interval", "from_date", "to_date"]
+      }
+    },
+    {
+      "name": "get_quote",
+      "description": "Get market quote",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "exchange": {"type": "string", "description": "Exchange name"},
+          "scrip_code": {"type": "string", "description": "Security code"}
+        },
+        "required": ["exchange", "scrip_code"]
+      }
+    },
+    {
+      "name": "authenticate",
+      "description": "Authenticate with Sharekhan",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "request_token": {"type": "string", "description": "Request token from Sharekhan login"},
+          "customer_id": {"type": "string", "description": "Customer ID", "default": "12345"}
+        },
+        "required": ["request_token"]
+      }
+    },
+    {
+      "name": "get_login_url",
+      "description": "Get login URL for authentication",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ],
+  "endpoints": {
+    "http": {
+      "url": "http://localhost:8080",
+      "health_check": "/health",
+      "tools_list": "/tools",
+      "tool_execute": "/tools/{tool_name}",
+      "auth": {
+        "login": "/auth/login",
+        "callback": "/auth/callback",
+        "status": "/auth/status",
+        "logout": "/auth/logout"
+      }
+    }
+  },
+  "authentication": {
+    "type": "oauth2",
+    "flow": "authorization_code",
+    "authorization_url": "https://api.sharekhan.com/v1/auth/login",
+    "token_url": "https://api.sharekhan.com/v1/auth/token"
+  },
+  "capabilities": {
+    "trading": {
+      "equity": true,
+      "derivatives": true,
+      "commodity": true,
+      "currency": true
+    },
+    "data": {
+      "historical": true,
+      "realtime": true,
+      "market_depth": true
+    },
+    "portfolio": {
+      "holdings": true,
+      "positions": true,
+      "orders": true,
+      "trades": true
+    }
+  }
+}

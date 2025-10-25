@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  sharekhan-mcp:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SHAREKHAN_API_KEY=${SHAREKHAN_API_KEY}
+      - SHAREKHAN_SECRET_KEY=${SHAREKHAN_SECRET_KEY}
+      - SHAREKHAN_CUSTOMER_ID=${SHAREKHAN_CUSTOMER_ID}
+      - SHAREKHAN_VERSION_ID=${SHAREKHAN_VERSION_ID:-1005}
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8080
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Add a reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - sharekhan-mcp
+    restart: unless-stopped
+    profiles:
+      - production

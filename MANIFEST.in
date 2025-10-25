@@ -1,0 +1,13 @@
+include README.md
+include LICENSE
+include .env.example
+include mcp.json
+recursive-include docs *.md
+recursive-include src/sharekhan_connect_mcp *.py
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store
+global-exclude .git*
+global-exclude .env
+global-exclude logs/
+global-exclude *.log
