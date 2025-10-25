@@ -4,13 +4,17 @@ Logging configuration for Sharekhan MCP Server
 
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from loguru import logger
 
 from .config import Settings
 
+if TYPE_CHECKING:
+    from loguru import Logger
 
-def setup_logging(settings: Settings) -> logger:
+
+def setup_logging(settings: Settings) -> "Logger":
     """Setup structured logging with loguru"""
 
     # Remove default handler

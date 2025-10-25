@@ -14,66 +14,67 @@ class Settings(BaseSettings):
 
     # Sharekhan API Configuration (Required)
     sharekhan_api_key: str = Field(
-        ..., env="SHAREKHAN_API_KEY", description="Your Sharekhan API Key"
+        ..., description="Your Sharekhan API Key"
     )
     sharekhan_secret_key: str = Field(
         ...,
-        env="SHAREKHAN_SECRET_KEY",
         description="Your Secret Key for token decryption",
     )
     sharekhan_customer_id: str = Field(
-        ..., env="SHAREKHAN_CUSTOMER_ID", description="Your Sharekhan Customer/Login ID"
+        ..., description="Your Sharekhan Customer/Login ID"
     )
     sharekhan_version_id: Union[str, int, None] = Field(
         "1005",
-        env="SHAREKHAN_VERSION_ID",
         description="API Version ID (null/1005/1006)",
     )
 
     # Optional Sharekhan Configuration
     sharekhan_vendor_key: Optional[str] = Field(
         None,
-        env="SHAREKHAN_VENDOR_KEY",
         description="Vendor Key (only for vendor login)",
     )
     sharekhan_state: str = Field(
-        "12345", env="SHAREKHAN_STATE", description="OAuth state parameter"
+        "12345", description="OAuth state parameter"
     )
 
     # MCP Server Configuration
-    mcp_port: int = Field(8080, env="MCP_PORT", description="MCP server port")
-    mcp_host: str = Field("0.0.0.0", env="MCP_HOST", description="MCP server host")
+    mcp_port: int = Field(default=8080, description="MCP server port")
+    mcp_host: str = Field(
+        default="0.0.0.0", description="MCP server host"
+    )
     redirect_uri: str = Field(
-        "http://localhost:8080/auth/callback",
-        env="REDIRECT_URI",
+        default="http://localhost:8080/auth/callback",
         description="OAuth redirect URI",
     )
 
     # Logging Configuration
-    log_level: str = Field("INFO", env="LOG_LEVEL", description="Logging level")
+    log_level: str = Field(default="INFO", description="Logging level")
     log_file: str = Field(
-        "logs/sharekhan_mcp.log", env="LOG_FILE", description="Log file path"
+        default="logs/sharekhan_mcp.log", description="Log file path"
     )
 
     # API Configuration
     api_timeout: int = Field(
-        30, env="API_TIMEOUT", description="API request timeout in seconds"
+        default=30, description="API request timeout in seconds"
     )
-    max_retries: int = Field(3, env="MAX_RETRIES", description="Maximum retry attempts")
+    max_retries: int = Field(
+        default=3, description="Maximum retry attempts"
+    )
     retry_delay: float = Field(
-        1.0, env="RETRY_DELAY", description="Delay between retries in seconds"
+        default=1.0, description="Delay between retries in seconds"
     )
 
     # WebSocket Configuration
     ws_timeout: int = Field(
-        60, env="WS_TIMEOUT", description="WebSocket connection timeout"
+        default=60, description="WebSocket connection timeout"
     )
     ws_reconnect_attempts: int = Field(
-        5, env="WS_RECONNECT_ATTEMPTS", description="Maximum reconnection attempts"
+        default=5,
+        description="Maximum reconnection attempts",
     )
 
     @validator("sharekhan_version_id")
-    def validate_version_id(cls, v):
+    def validate_version_id(cls, v: Union[str, int, None]) -> Union[str, None]:
         """Validate version ID is one of the allowed values"""
         if v is None or v == "null":
             return None
@@ -82,14 +83,14 @@ class Settings(BaseSettings):
         raise ValueError("SHAREKHAN_VERSION_ID must be null, 1005, or 1006")
 
     @validator("sharekhan_customer_id")
-    def validate_customer_id(cls, v):
+    def validate_customer_id(cls, v: str) -> str:
         """Validate customer ID is numeric"""
         if not str(v).isdigit():
             raise ValueError("SHAREKHAN_CUSTOMER_ID must be numeric")
         return str(v)
 
     @validator("sharekhan_api_key", "sharekhan_secret_key")
-    def validate_required_fields(cls, v):
+    def validate_required_fields(cls, v: str) -> str:
         """Validate required fields are not empty"""
         if not v or v.strip() == "":
             raise ValueError("API credentials cannot be empty")

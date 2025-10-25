@@ -30,8 +30,8 @@ class Tool:
 
 
 class MCPServer:
-    def __init__(self):
-        self.tools = []
+    def __init__(self) -> None:
+        self.tools: List[Tool] = []
 
 
 @asynccontextmanager
@@ -52,8 +52,8 @@ async def lifespan(app: FastAPI):
         customer_id=settings.sharekhan_customer_id,
         version_id=(
             str(settings.sharekhan_version_id)
-            if settings.sharekhan_version_id
-            else None
+            if settings.sharekhan_version_id is not None
+            else "1005"
         ),
         state=settings.sharekhan_state,
     )
@@ -78,14 +78,14 @@ async def lifespan(app: FastAPI):
 
     # Disconnect WebSocket
     ws_client = getattr(app.state, "ws_client", None)
-    if ws_client:
+    if ws_client and hasattr(ws_client, "disconnect"):
         await ws_client.disconnect()
 
 
 class SharekhanMCPServer:
     """Main MCP Server for Sharekhan Trading APIs"""
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.app = FastAPI(
             title="Sharekhan MCP Server",
@@ -103,7 +103,7 @@ class SharekhanMCPServer:
         # Setup routes
         self._setup_routes()
 
-    def _setup_middleware(self):
+    def _setup_middleware(self) -> None:
         """Setup FastAPI middleware"""
         self.app.add_middleware(
             CORSMiddleware,
@@ -113,11 +113,11 @@ class SharekhanMCPServer:
             allow_headers=["*"],
         )
 
-    def _setup_routes(self):
+    def _setup_routes(self) -> None:
         """Setup API routes"""
 
         @self.app.get("/")
-        async def root():
+        async def root() -> Dict[str, str]:
             """Root endpoint"""
             return {
                 "message": "Sharekhan MCP Server",
@@ -126,7 +126,7 @@ class SharekhanMCPServer:
             }
 
         @self.app.get("/health")
-        async def health_check():
+        async def health_check() -> Dict[str, Any]:
             """Health check endpoint"""
             try:
                 # Check if components are initialized
@@ -153,7 +153,7 @@ class SharekhanMCPServer:
                 raise HTTPException(status_code=503, detail=str(e))
 
         @self.app.get("/auth/login")
-        async def get_login_url():
+        async def get_login_url() -> Dict[str, Any]:
             """Get login URL for authentication"""
             try:
                 tools = getattr(self.app.state, "tools", None)
@@ -168,7 +168,9 @@ class SharekhanMCPServer:
                 raise HTTPException(status_code=500, detail=str(e))
 
         @self.app.post("/auth/callback")
-        async def auth_callback(request_token: str, customer_id: str = "12345"):
+        async def auth_callback(
+            request_token: str, customer_id: str = "12345"
+        ) -> Dict[str, str]:
             """Handle authentication callback"""
             try:
                 session_manager = getattr(self.app.state, "session_manager", None)
@@ -189,7 +191,7 @@ class SharekhanMCPServer:
                 raise HTTPException(status_code=500, detail=str(e))
 
         @self.app.get("/tools")
-        async def list_tools():
+        async def list_tools() -> Dict[str, Any]:
             """List available MCP tools"""
             try:
                 tools = getattr(self.app.state, "tools", None)
@@ -211,7 +213,9 @@ class SharekhanMCPServer:
                 raise HTTPException(status_code=500, detail=str(e))
 
         @self.app.post("/tools/{tool_name}")
-        async def execute_tool(tool_name: str, request_data: Dict[str, Any]):
+        async def execute_tool(
+            tool_name: str, request_data: Dict[str, Any]
+        ) -> Dict[str, Any]:
             """Execute a specific MCP tool"""
             try:
                 tools = getattr(self.app.state, "tools", None)
@@ -234,7 +238,7 @@ class SharekhanMCPServer:
                 raise HTTPException(status_code=500, detail=str(e))
 
         @self.app.get("/auth/status")
-        async def auth_status():
+        async def auth_status() -> Dict[str, Any]:
             """Get authentication status"""
             try:
                 session_manager = getattr(self.app.state, "session_manager", None)
@@ -260,7 +264,7 @@ class SharekhanMCPServer:
                 raise HTTPException(status_code=500, detail=str(e))
 
         @self.app.post("/auth/logout")
-        async def logout():
+        async def logout() -> Dict[str, str]:
             """Logout and clear session"""
             try:
                 session_manager = getattr(self.app.state, "session_manager", None)
@@ -276,7 +280,7 @@ class SharekhanMCPServer:
                 logger.error(f"Logout failed: {e}")
                 raise HTTPException(status_code=500, detail=str(e))
 
-    def run(self):
+    def run(self) -> None:
         """Run the MCP server"""
         import uvicorn
 
@@ -293,7 +297,7 @@ class SharekhanMCPServer:
         )
 
 
-def main():
+def main() -> None:
     """Entry point for CLI and MCP invocation"""
     from dotenv import load_dotenv
 

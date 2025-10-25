@@ -108,7 +108,7 @@ line_length = 88
 known_first_party = ["sharekhan_connect_mcp"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -126,7 +126,11 @@ strict_equality = true
 module = [
     "loguru.*",
     "websockets.*",
-    "psutil.*"
+    "psutil.*",
+    "fastapi.*",
+    "uvicorn.*",
+    "websocket_client.*",
+    "requests.*"
 ]
 ignore_missing_imports = true
 
