@@ -56,13 +56,34 @@ dev = [
     "black>=23.0.0",
     "isort>=5.12.0",
     "flake8>=6.0.0",
-    "mypy>=1.0.0"
+    "mypy>=1.0.0",
+    # Code quality tools
+    "radon>=6.0.0",
+    "xenon>=0.9.0",
+    "pydocstyle>=6.3.0",
+    # Security tools
+    "detect-secrets>=1.4.0",
+    "bandit>=1.7.0",
+    "pip-audit>=2.6.0",
+    "pip-licenses>=4.3.0"
 ]
 test = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
-    "httpx>=0.24.0"
+    "httpx>=0.24.0",
+    # Performance testing
+    "pytest-benchmark>=4.0.0"
+]
+quality = [
+    "radon>=6.0.0",
+    "xenon>=0.9.0",
+    "pydocstyle>=6.3.0"
+]
+security = [
+    "detect-secrets>=1.4.0",
+    "bandit>=1.7.0",
+    "pip-audit>=2.6.0"
 ]
 
 [project.urls]
@@ -144,5 +165,23 @@ python_functions = ["test_*"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
-    "unit: marks tests as unit tests"
+    "unit: marks tests as unit tests",
+    "benchmark: marks tests as benchmarks"
 ]
+
+# Code quality configuration
+[tool.radon]
+cc_min = "B"
+mi_min = "B"
+
+[tool.xenon]
+max_absolute = "B"
+max_modules = "A"
+max_average = "A"
+
+# Documentation configuration
+[tool.pydocstyle]
+convention = "google"
+add_ignore = ["D100", "D104", "D105", "D107"]
+match = "(?!test_).*\\.py"
+match_dir = "(?!test).*"

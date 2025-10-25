@@ -34,6 +34,72 @@ jobs:
         mypy src/ --config-file=pyproject.toml --show-error-codes --pretty
         echo "✅ Type checking completed"
 
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[quality]"
+
+    - name: Check code complexity with radon
+      run: |
+        echo "🔍 Analyzing code complexity with radon..."
+        radon cc src/ --min B --show-complexity
+        echo "✅ Code complexity analysis completed"
+
+    - name: Check maintainability with xenon
+      run: |
+        echo "🔍 Checking maintainability index with xenon..."
+        xenon --max-absolute B --max-modules A --max-average A src/ || echo "⚠️ Some maintainability issues found"
+        echo "✅ Maintainability analysis completed"
+
+    - name: Check documentation quality with pydocstyle
+      run: |
+        echo "🔍 Checking documentation quality with pydocstyle..."
+        pydocstyle src/ --count || echo "⚠️ Some documentation issues found"
+        echo "✅ Documentation quality check completed"
+
+  security-enhanced:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[security]"
+
+    - name: Scan for secrets with detect-secrets
+      run: |
+        echo "🔍 Scanning for secrets and sensitive data..."
+        if [ -f .secrets.baseline ]; then
+          detect-secrets scan --baseline .secrets.baseline --all-files
+        else
+          detect-secrets scan --all-files --initial-scan
+        fi
+        echo "✅ Secrets scanning completed"
+
+    - name: Security scan with bandit
+      run: |
+        echo "🔍 Running security analysis with bandit..."
+        bandit -r src/ || echo "⚠️ Some security issues found"
+        echo "✅ Security analysis completed"
+
   format-check:
     name: Code Formatting Check
     runs-on: ubuntu-latest
@@ -167,7 +233,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: [type-check, format-check, test]
+    needs: [type-check, code-quality, security-enhanced, format-check, test]
     
     steps:
     - uses: actions/checkout@v4
