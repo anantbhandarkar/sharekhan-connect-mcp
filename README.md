@@ -35,7 +35,7 @@ pip install -e .
 
 ### Configuration
 
-1. **Get your Sharekhan API credentials** from [Sharekhan API Documentation](https://www.sharekhan.com/api-documentation)
+1. **Get your Sharekhan API credentials** from [Sharekhan API Documentation](docs/sharekhan-api-guide.md)
 
 2. **Set up environment variables:**
 ```bash
