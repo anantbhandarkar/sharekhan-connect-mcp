@@ -26,7 +26,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install mypy types-requests types-PyYAML pydantic fastapi
+        pip install mypy types-requests types-PyYAML types-psutil types-setuptools pydantic fastapi
     
     - name: Type check with mypy (strict)
       run: |
@@ -48,7 +48,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e ".[quality]"
+        pip install radon>=6.0.0 xenon>=0.9.0 pydocstyle>=6.3.0
 
     - name: Check code complexity with radon
       run: |
@@ -82,7 +82,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e ".[security]"
+        pip install detect-secrets>=1.4.0 bandit>=1.7.0 pip-audit>=2.6.0
 
     - name: Scan for secrets with detect-secrets
       run: |
@@ -111,10 +111,10 @@ jobs:
       with:
         python-version: "3.11"
     
-    - name: Install Black
+    - name: Install formatting tools
       run: |
         python -m pip install --upgrade pip
-        pip install black
+        pip install black isort
     
     - name: Check code formatting with Black
       run: |
@@ -155,7 +155,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e ".[dev,test]"
+        pip install pytest pytest-asyncio pytest-cov httpx black isort mypy bandit safety flake8
     
     - name: Quick formatting check (fail fast)
       run: |
