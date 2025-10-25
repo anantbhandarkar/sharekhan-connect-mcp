@@ -45,9 +45,12 @@ class SharekhanSessionManager:
             if self.version_id and self.version_id != "null":
                 # Use version ID flow
                 session_data = self.client.generate_session(request_token)
+                session_token = session_data.get("session_token")
+                if not session_token:
+                    raise ValueError("Session token not found in session data")
                 access_token = self.client.get_access_token(
                     self.client.api_key,
-                    session_data.get("session_token"),
+                    str(session_token),
                     self.state,
                     versionId=self.version_id,
                 )
@@ -56,8 +59,11 @@ class SharekhanSessionManager:
                 session_data = self.client.generate_session_without_versionId(
                     request_token
                 )
+                session_token = session_data.get("session_token")
+                if not session_token:
+                    raise ValueError("Session token not found in session data")
                 access_token = self.client.get_access_token(
-                    self.client.api_key, session_data.get("session_token"), self.state
+                    self.client.api_key, str(session_token), self.state
                 )
 
             if not access_token:

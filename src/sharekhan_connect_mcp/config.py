@@ -35,7 +35,9 @@ class Settings(BaseSettings):
 
     # MCP Server Configuration
     mcp_port: int = Field(default=8080, description="MCP server port")
-    mcp_host: str = Field(default="0.0.0.0", description="MCP server host")  # nosec: B104
+    mcp_host: str = Field(
+        default="0.0.0.0", description="MCP server host"  # nosec: B104
+    )
     redirect_uri: str = Field(
         default="http://localhost:8080/auth/callback",
         description="OAuth redirect URI",

@@ -132,7 +132,7 @@ class SharekhanMCPTools:
             if input_data.quantity:
                 modify_params["quantity"] = input_data.quantity
             if input_data.order_type:
-                modify_params["order_type"] = str(input_data.order_type)
+                modify_params["order_type"] = str(input_data.order_type)  # type: ignore
 
             result = self.client.modify_order(input_data.order_id, modify_params)
             logger.info(f"Order modified: {result}")

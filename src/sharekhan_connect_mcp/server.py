@@ -8,7 +8,7 @@ import os
 import sys
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional, cast
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -163,7 +163,7 @@ class SharekhanMCPServer:
                     raise HTTPException(status_code=503, detail="Tools not initialized")
 
                 result = await tools.get_login_url()
-                return result
+                return cast(Dict[str, Any], result)
 
             except Exception as e:
                 logger.error(f"Failed to get login URL: {e}")
@@ -233,7 +233,7 @@ class SharekhanMCPServer:
 
                 # Execute the tool
                 result = await tool_method(**request_data)
-                return result
+                return cast(Dict[str, Any], result)
 
             except Exception as e:
                 logger.error(f"Tool execution failed: {e}")

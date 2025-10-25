@@ -6,7 +6,7 @@ Replaces KiteConnect functionality with Sharekhan APIs
 import os
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import requests
 from loguru import logger
@@ -76,7 +76,7 @@ class SharekhanClient:
             self.session_token = session_data.get("session_token")
 
             logger.info("Session generated successfully")
-            return session_data
+            return cast(Dict[str, Any], session_data)
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to generate session: {e}")
@@ -140,7 +140,7 @@ class SharekhanClient:
                 timeout=30,
             )
             response.raise_for_status()
-            return response.json()
+            return cast(Dict[str, Any], response.json())
 
         except requests.exceptions.RequestException as e:
             logger.error(f"API request failed: {e}")
@@ -195,7 +195,7 @@ class SharekhanClient:
         """Get holdings for customer (matches SharekhanConnect API)"""
         params = {"customer_id": customerId}
         result = self._make_request("GET", self.endpoints["holdings"], params=params)
-        return result.get("holdings", [])
+        return cast(List[Dict[str, Any]], result.get("holdings", []))
 
     def positions(self, customerId: str) -> Dict[str, Any]:
         """Get positions for customer (matches SharekhanConnect API)"""
@@ -206,7 +206,7 @@ class SharekhanClient:
         """Get trade history for customer (matches SharekhanConnect API)"""
         params = {"customer_id": customerId}
         result = self._make_request("GET", self.endpoints["trades"], params=params)
-        return result.get("trades", [])
+        return cast(List[Dict[str, Any]], result.get("trades", []))
 
     def exchange(self, exchange: str, customerId: str, orderId: str) -> Dict[str, Any]:
         """Get order details (matches SharekhanConnect API)"""
@@ -223,7 +223,7 @@ class SharekhanClient:
         result = self._make_request(
             "GET", f"{self.endpoints['trades']}/by-order", params=params
         )
-        return result.get("trades", [])
+        return cast(List[Dict[str, Any]], result.get("trades", []))
 
     # Market Data Operations (matches SharekhanConnect API)
     def historicaldata(
@@ -232,7 +232,7 @@ class SharekhanClient:
         """Get historical market data (matches SharekhanConnect API)"""
         params = {"exchange": exchange, "scripcode": scripcode, "interval": interval}
         result = self._make_request("GET", self.endpoints["history"], params=params)
-        return result.get("data", [])
+        return cast(List[Dict[str, Any]], result.get("data", []))
 
     def historical_data(
         self,
@@ -254,7 +254,7 @@ class SharekhanClient:
         """Get script master data (matches SharekhanConnect API)"""
         params = {"exchange": exchange}
         result = self._make_request("GET", "/master", params=params)
-        return result.get("master", [])
+        return cast(List[Dict[str, Any]], result.get("master", []))
 
     # Order Book Operations
     def orders(self, customer_id: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -263,4 +263,4 @@ class SharekhanClient:
         if customer_id:
             params["customer_id"] = customer_id
         result = self._make_request("GET", self.endpoints["orders"], params=params)
-        return result.get("orders", [])
+        return cast(List[Dict[str, Any]], result.get("orders", []))

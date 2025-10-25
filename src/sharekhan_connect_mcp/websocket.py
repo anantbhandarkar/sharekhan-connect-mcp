@@ -11,8 +11,8 @@ from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
 
 import websockets
-from websockets.client import ClientProtocol
 from loguru import logger
+from websockets.client import ClientProtocol
 
 
 class SharekhanWebSocketClient:
@@ -75,7 +75,7 @@ class SharekhanWebSocketClient:
 
             self.websocket = await websockets.connect(
                 self.ws_url, extra_headers=headers, ping_interval=30, ping_timeout=10
-            )
+            )  # type: ignore
 
             self.is_connected = True
             self.reconnect_attempts = 0
@@ -102,7 +102,7 @@ class SharekhanWebSocketClient:
 
         if self.websocket:
             try:
-                await self.websocket.close()
+                await self.websocket.close()  # type: ignore
                 logger.info("Disconnected from WebSocket")
             except Exception as e:
                 logger.error(f"Error closing WebSocket: {e}")
@@ -115,13 +115,13 @@ class SharekhanWebSocketClient:
         try:
             while self.is_connected and self.websocket:
                 try:
-                    message = await asyncio.wait_for(self.websocket.recv(), timeout=30)
+                    message = await asyncio.wait_for(self.websocket.recv(), timeout=30)  # type: ignore
                     await self._handle_message(message)
 
                 except asyncio.TimeoutError:
                     # Send ping to keep connection alive
                     if self.websocket:
-                        await self.websocket.ping()
+                        await self.websocket.ping()  # type: ignore
                     continue
 
                 except websockets.exceptions.ConnectionClosed:
@@ -229,7 +229,7 @@ class SharekhanWebSocketClient:
         """Send message to WebSocket"""
         if self.websocket and self.is_connected:
             try:
-                await self.websocket.send(json.dumps(message))
+                await self.websocket.send(json.dumps(message))  # type: ignore
                 logger.debug(f"Sent WebSocket message: {message.get('type')}")
             except Exception as e:
                 logger.error(f"Failed to send WebSocket message: {e}")
@@ -278,7 +278,7 @@ class SharekhanWebSocketClient:
         subscription_type: str,
         instruments: List[str],
         params: Optional[Dict] = None,
-    ) -> Dict[str, Any]:
+    ) -> str:
         """Subscribe to market data (legacy method)"""
         token_list = {
             "action": "subscribe",
