@@ -56,7 +56,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Cache pip dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
@@ -117,6 +117,12 @@ jobs:
         python test_installation.py
         echo "✅ Installation tests passed"
     
+    - name: Validate GitHub Actions versions
+      run: |
+        echo "🔍 Checking for deprecated GitHub Actions..."
+        python -m pytest tests/test_github_actions_versions.py -v
+        echo "✅ GitHub Actions versions validated"
+    
     - name: Check commit message for formatting
       run: |
         echo "🔍 Checking commit message..."
@@ -127,10 +133,10 @@ jobs:
         fi
     
     - name: Upload security and coverage reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: security-coverage-reports
+        name: security-coverage-reports-${{ matrix.python-version }}
         path: |
           bandit-report.json
           safety-report.json
@@ -167,7 +173,7 @@ jobs:
         echo "✅ Package validation passed"
     
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: dist
         path: dist/
