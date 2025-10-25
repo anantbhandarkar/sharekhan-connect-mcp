@@ -58,7 +58,7 @@ class SharekhanClient:
         return self.login_url(version_id=version_id)
 
     def generate_session(
-        self, request_token: str, secret_key: str = None
+        self, request_token: str, secret_key: Optional[str] = None
     ) -> Dict[str, Any]:
         """Generate session using request token (matches SharekhanConnect API)"""
         try:
@@ -83,13 +83,13 @@ class SharekhanClient:
             raise
 
     def generate_session_without_versionId(
-        self, request_token: str, secret_key: str = None
+        self, request_token: str, secret_key: Optional[str] = None
     ) -> Dict[str, Any]:
         """Generate session without version ID (matches SharekhanConnect API)"""
         return self.generate_session(request_token, secret_key)
 
     def get_access_token(
-        self, api_key: str, session: str, state: str, versionId: str = None
+        self, api_key: str, session: str, state: str, versionId: Optional[str] = None
     ) -> str:
         """Get access token using session (matches SharekhanConnect API)"""
         try:

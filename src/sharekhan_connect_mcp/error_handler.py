@@ -276,7 +276,9 @@ class ErrorHandler:
             raise ValidationError(error_message, error_details)
 
     @staticmethod
-    def wrap_api_call(func, *args, context: Optional[str] = None, **kwargs):
+    def wrap_api_call(
+        func: Any, *args: Any, context: Optional[str] = None, **kwargs: Any
+    ) -> Any:
         """
         Wrap API calls with error handling
 

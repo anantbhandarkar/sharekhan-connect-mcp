@@ -13,9 +13,7 @@ class Settings(BaseSettings):
     """Application settings"""
 
     # Sharekhan API Configuration (Required)
-    sharekhan_api_key: str = Field(
-        ..., description="Your Sharekhan API Key"
-    )
+    sharekhan_api_key: str = Field(..., description="Your Sharekhan API Key")
     sharekhan_secret_key: str = Field(
         ...,
         description="Your Secret Key for token decryption",
@@ -33,15 +31,11 @@ class Settings(BaseSettings):
         None,
         description="Vendor Key (only for vendor login)",
     )
-    sharekhan_state: str = Field(
-        "12345", description="OAuth state parameter"
-    )
+    sharekhan_state: str = Field("12345", description="OAuth state parameter")
 
     # MCP Server Configuration
     mcp_port: int = Field(default=8080, description="MCP server port")
-    mcp_host: str = Field(
-        default="0.0.0.0", description="MCP server host"
-    )
+    mcp_host: str = Field(default="0.0.0.0", description="MCP server host")  # nosec: B104
     redirect_uri: str = Field(
         default="http://localhost:8080/auth/callback",
         description="OAuth redirect URI",
@@ -49,25 +43,17 @@ class Settings(BaseSettings):
 
     # Logging Configuration
     log_level: str = Field(default="INFO", description="Logging level")
-    log_file: str = Field(
-        default="logs/sharekhan_mcp.log", description="Log file path"
-    )
+    log_file: str = Field(default="logs/sharekhan_mcp.log", description="Log file path")
 
     # API Configuration
-    api_timeout: int = Field(
-        default=30, description="API request timeout in seconds"
-    )
-    max_retries: int = Field(
-        default=3, description="Maximum retry attempts"
-    )
+    api_timeout: int = Field(default=30, description="API request timeout in seconds")
+    max_retries: int = Field(default=3, description="Maximum retry attempts")
     retry_delay: float = Field(
         default=1.0, description="Delay between retries in seconds"
     )
 
     # WebSocket Configuration
-    ws_timeout: int = Field(
-        default=60, description="WebSocket connection timeout"
-    )
+    ws_timeout: int = Field(default=60, description="WebSocket connection timeout")
     ws_reconnect_attempts: int = Field(
         default=5,
         description="Maximum reconnection attempts",
@@ -107,7 +93,7 @@ class Settings(BaseSettings):
 
         if (
             not self.sharekhan_secret_key
-            or self.sharekhan_secret_key == "your_secret_key_here"
+            or self.sharekhan_secret_key == "your_secret_key_here"  # nosec: B105
         ):
             errors.append("SHAREKHAN_SECRET_KEY is not configured")
 

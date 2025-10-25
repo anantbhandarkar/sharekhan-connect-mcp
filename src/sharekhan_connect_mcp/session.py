@@ -30,7 +30,9 @@ class SharekhanSessionManager:
         self.session_expiry: Optional[datetime] = None
         self.refresh_threshold = timedelta(minutes=30)  # Refresh 30 mins before expiry
 
-    def authenticate(self, request_token: str, customer_id: str = None) -> bool:
+    def authenticate(
+        self, request_token: str, customer_id: Optional[str] = None
+    ) -> bool:
         """
         Complete authentication flow (supports both version ID and non-version flows)
         Returns True if authentication successful

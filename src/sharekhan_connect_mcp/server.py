@@ -8,7 +8,7 @@ import os
 import sys
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,7 +35,7 @@ class MCPServer:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager"""
     logger.info("Starting Sharekhan MCP Server...")
 
@@ -60,7 +60,7 @@ async def lifespan(app: FastAPI):
     tools = SharekhanMCPTools(client, session_manager)
 
     # Initialize WebSocket client (will be connected after authentication)
-    ws_client = SharekhanWebSocketClient(access_token="")
+    ws_client = SharekhanWebSocketClient(access_token="")  # nosec: B106
 
     # Store in app state
     app.state.client = client
@@ -77,9 +77,11 @@ async def lifespan(app: FastAPI):
         session_manager.logout()
 
     # Disconnect WebSocket
-    ws_client = getattr(app.state, "ws_client", None)
-    if ws_client and hasattr(ws_client, "disconnect"):
-        await ws_client.disconnect()
+    app_ws_client: Optional[SharekhanWebSocketClient] = getattr(
+        app.state, "ws_client", None
+    )
+    if app_ws_client and hasattr(app_ws_client, "disconnect"):
+        await app_ws_client.disconnect()
 
 
 class SharekhanMCPServer:
@@ -305,7 +307,7 @@ def main() -> None:
     load_dotenv()
 
     # Initialize settings
-    settings = Settings()
+    settings = Settings()  # type: ignore
 
     # Setup logging
     logger = setup_logging(settings)

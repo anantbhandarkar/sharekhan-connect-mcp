@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
 
 import websockets
+from websockets.client import ClientProtocol
 from loguru import logger
 
 
@@ -24,7 +25,7 @@ class SharekhanWebSocketClient:
     ):
         self.access_token = access_token
         self.ws_url = ws_url
-        self.websocket: Optional[websockets.WebSocketServerProtocol] = None
+        self.websocket: Optional[ClientProtocol] = None
         self.is_connected = False
         self.reconnect_attempts = 0
         self.max_reconnect_attempts = 5
@@ -44,7 +45,7 @@ class SharekhanWebSocketClient:
         self.ws_thread: Optional[threading.Thread] = None
         self.should_run = False
 
-    def add_callback(self, event_type: str, callback: Callable):
+    def add_callback(self, event_type: str, callback: Callable) -> None:
         """Add callback for specific event types"""
         if event_type in self.callback_handlers:
             self.callback_handlers[event_type].append(callback)
@@ -52,7 +53,7 @@ class SharekhanWebSocketClient:
         else:
             logger.warning(f"Unknown event type: {event_type}")
 
-    def remove_callback(self, event_type: str, callback: Callable):
+    def remove_callback(self, event_type: str, callback: Callable) -> None:
         """Remove callback for specific event types"""
         if (
             event_type in self.callback_handlers
@@ -94,7 +95,7 @@ class SharekhanWebSocketClient:
             self.is_connected = False
             return False
 
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         """Disconnect from WebSocket"""
         self.should_run = False
         self.is_connected = False
@@ -109,7 +110,7 @@ class SharekhanWebSocketClient:
         if self.ws_thread and self.ws_thread.is_alive():
             self.ws_thread.join(timeout=5)
 
-    async def _message_listener(self):
+    async def _message_listener(self) -> None:
         """Listen for WebSocket messages"""
         try:
             while self.is_connected and self.websocket:
@@ -139,7 +140,7 @@ class SharekhanWebSocketClient:
         if self.should_run:
             await self._attempt_reconnect()
 
-    async def _handle_message(self, message: str):
+    async def _handle_message(self, message: str) -> None:
         """Handle incoming WebSocket message"""
         try:
             data = json.loads(message)
@@ -169,7 +170,7 @@ class SharekhanWebSocketClient:
         except Exception as e:
             logger.error(f"Error handling WebSocket message: {e}")
 
-    async def _trigger_tick_callbacks(self, data: Dict[str, Any]):
+    async def _trigger_tick_callbacks(self, data: Dict[str, Any]) -> None:
         """Trigger tick data callbacks"""
         for callback in self.callback_handlers["ticks"]:
             try:
@@ -180,7 +181,7 @@ class SharekhanWebSocketClient:
             except Exception as e:
                 logger.error(f"Error in tick callback: {e}")
 
-    async def _trigger_quote_callbacks(self, data: Dict[str, Any]):
+    async def _trigger_quote_callbacks(self, data: Dict[str, Any]) -> None:
         """Trigger quote callbacks"""
         for callback in self.callback_handlers["quotes"]:
             try:
@@ -191,7 +192,7 @@ class SharekhanWebSocketClient:
             except Exception as e:
                 logger.error(f"Error in quote callback: {e}")
 
-    async def _trigger_order_callbacks(self, data: Dict[str, Any]):
+    async def _trigger_order_callbacks(self, data: Dict[str, Any]) -> None:
         """Trigger order update callbacks"""
         for callback in self.callback_handlers["orders"]:
             try:
@@ -202,7 +203,7 @@ class SharekhanWebSocketClient:
             except Exception as e:
                 logger.error(f"Error in order callback: {e}")
 
-    async def _trigger_trade_callbacks(self, data: Dict[str, Any]):
+    async def _trigger_trade_callbacks(self, data: Dict[str, Any]) -> None:
         """Trigger trade update callbacks"""
         for callback in self.callback_handlers["trades"]:
             try:
@@ -213,7 +214,7 @@ class SharekhanWebSocketClient:
             except Exception as e:
                 logger.error(f"Error in trade callback: {e}")
 
-    async def _trigger_error_callbacks(self, error: Any):
+    async def _trigger_error_callbacks(self, error: Any) -> None:
         """Trigger error callbacks"""
         for callback in self.callback_handlers["errors"]:
             try:
@@ -224,7 +225,7 @@ class SharekhanWebSocketClient:
             except Exception as e:
                 logger.error(f"Error in error callback: {e}")
 
-    async def send_message(self, message: Dict[str, Any]):
+    async def send_message(self, message: Dict[str, Any]) -> None:
         """Send message to WebSocket"""
         if self.websocket and self.is_connected:
             try:
@@ -277,7 +278,7 @@ class SharekhanWebSocketClient:
         subscription_type: str,
         instruments: List[str],
         params: Optional[Dict] = None,
-    ):
+    ) -> Dict[str, Any]:
         """Subscribe to market data (legacy method)"""
         token_list = {
             "action": "subscribe",
@@ -286,7 +287,7 @@ class SharekhanWebSocketClient:
         }
         return await self.subscribe(token_list)
 
-    async def unsubscribe_legacy(self, subscription_id: str):
+    async def unsubscribe_legacy(self, subscription_id: str) -> None:
         """Unsubscribe from market data (legacy method)"""
         if subscription_id in self.subscriptions:
             message = {"action": "unsubscribe", "subscription_id": subscription_id}
@@ -295,11 +296,11 @@ class SharekhanWebSocketClient:
             del self.subscriptions[subscription_id]
             logger.info(f"Unsubscribed from {subscription_id}")
 
-    def close_connection(self):
+    def close_connection(self) -> None:
         """Close WebSocket connection (matches SharekhanConnect API)"""
         asyncio.create_task(self.disconnect())
 
-    async def _resubscribe_all(self):
+    async def _resubscribe_all(self) -> None:
         """Resubscribe to all previous subscriptions"""
         for subscription_id, subscription_data in self.subscriptions.items():
             message = {
@@ -310,7 +311,7 @@ class SharekhanWebSocketClient:
             await self.send_message(message)
             logger.info(f"Resubscribed to {subscription_id}")
 
-    async def _attempt_reconnect(self):
+    async def _attempt_reconnect(self) -> None:
         """Attempt to reconnect to WebSocket"""
         while self.reconnect_attempts < self.max_reconnect_attempts and self.should_run:
             self.reconnect_attempts += 1
@@ -328,11 +329,11 @@ class SharekhanWebSocketClient:
             f"Failed to reconnect after {self.max_reconnect_attempts} attempts"
         )
 
-    def start(self):
+    def start(self) -> None:
         """Start WebSocket connection in background thread"""
         self.should_run = True
 
-        def run_websocket():
+        def run_websocket() -> None:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
@@ -348,7 +349,7 @@ class SharekhanWebSocketClient:
         self.ws_thread.start()
         logger.info("WebSocket background thread started")
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop WebSocket connection"""
         self.should_run = False
         logger.info("Stopping WebSocket client")

@@ -8,7 +8,7 @@ import time
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Deque, Dict, List, Optional
 
 import psutil
 from loguru import logger
@@ -60,25 +60,25 @@ class MetricsCollector:
         self.start_time = datetime.now()
 
         # Request metrics
-        self.request_history: deque = deque(maxlen=max_history_size)
-        self.request_counts = defaultdict(int)
-        self.response_times = defaultdict(list)
+        self.request_history: Deque[RequestMetrics] = deque(maxlen=max_history_size)
+        self.request_counts: Dict[str, int] = defaultdict(int)
+        self.response_times: Dict[str, List[float]] = defaultdict(list)
 
         # Error tracking
-        self.error_counts = defaultdict(int)
-        self.error_history: deque = deque(maxlen=1000)
+        self.error_counts: Dict[str, int] = defaultdict(int)
+        self.error_history: Deque[Dict[str, Any]] = deque(maxlen=1000)
 
         # System metrics
-        self.system_metrics_history: deque = deque(maxlen=1000)
+        self.system_metrics_history: Deque[SystemMetrics] = deque(maxlen=1000)
 
         # API health metrics
         self.api_health: Dict[str, APIHealthMetrics] = {}
 
         # Tool usage metrics
-        self.tool_usage_counts = defaultdict(int)
-        self.tool_response_times = defaultdict(list)
+        self.tool_usage_counts: Dict[str, int] = defaultdict(int)
+        self.tool_response_times: Dict[str, List[float]] = defaultdict(list)
 
-    def record_request(self, metrics: RequestMetrics):
+    def record_request(self, metrics: RequestMetrics) -> None:
         """Record request metrics"""
         self.request_history.append(metrics)
 
@@ -92,7 +92,7 @@ class MetricsCollector:
             self.tool_usage_counts[metrics.tool_name] += 1
             self.tool_response_times[metrics.tool_name].append(metrics.response_time)
 
-    def record_error(self, error_type: str, error_details: Dict[str, Any]):
+    def record_error(self, error_type: str, error_details: Dict[str, Any]) -> None:
         """Record error metrics"""
         self.error_counts[error_type] += 1
         self.error_history.append(
@@ -103,7 +103,7 @@ class MetricsCollector:
             }
         )
 
-    def record_system_metrics(self):
+    def record_system_metrics(self) -> None:
         """Record current system metrics"""
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
@@ -133,7 +133,7 @@ class MetricsCollector:
         is_healthy: bool,
         response_time: float,
         error_details: Optional[str] = None,
-    ):
+    ) -> None:
         """Update API health status"""
         current_health = self.api_health.get(endpoint)
 
@@ -194,7 +194,7 @@ class MetricsCollector:
 
         # Calculate error statistics
         recent_errors = [e for e in self.error_history if e["timestamp"] >= cutoff_time]
-        error_by_type = defaultdict(int)
+        error_by_type: Dict[str, int] = defaultdict(int)
         for error in recent_errors:
             error_by_type[error["error_type"]] += 1
 
@@ -248,9 +248,9 @@ class MonitoringService:
 
     def __init__(self, max_history_size: int = 10000):
         self.metrics_collector = MetricsCollector(max_history_size)
-        self.system_monitor_task = None
+        self.system_monitor_task: Optional[asyncio.Task] = None
 
-    async def start(self):
+    async def start(self) -> None:
         """Start monitoring services"""
         logger.info("Starting monitoring service")
 
@@ -259,7 +259,7 @@ class MonitoringService:
 
         logger.info("Monitoring service started")
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Stop monitoring services"""
         logger.info("Stopping monitoring service")
 
@@ -269,7 +269,7 @@ class MonitoringService:
 
         logger.info("Monitoring service stopped")
 
-    async def _collect_system_metrics(self):
+    async def _collect_system_metrics(self) -> None:
         """Collect system metrics periodically"""
         while True:
             try:
