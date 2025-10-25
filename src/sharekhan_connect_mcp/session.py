@@ -4,15 +4,24 @@ Handles authentication flow and token refresh
 """
 
 import time
-from typing import Optional
 from datetime import datetime, timedelta
+from typing import Optional
+
 from loguru import logger
+
 from .client import SharekhanClient
+
 
 class SharekhanSessionManager:
     """Manages Sharekhan authentication sessions"""
 
-    def __init__(self, client: SharekhanClient, customer_id: str = "12345", version_id: str = "1005", state: str = "12345"):
+    def __init__(
+        self,
+        client: SharekhanClient,
+        customer_id: str = "12345",
+        version_id: str = "1005",
+        state: str = "12345",
+    ):
         self.client = client
         self.customer_id = customer_id
         self.version_id = version_id
@@ -28,25 +37,25 @@ class SharekhanSessionManager:
         """
         try:
             customer_id = customer_id or self.customer_id
-            
+
             # Generate session based on version ID
             logger.info("Generating session...")
             if self.version_id and self.version_id != "null":
                 # Use version ID flow
                 session_data = self.client.generate_session(request_token)
                 access_token = self.client.get_access_token(
-                    self.client.api_key, 
-                    session_data.get("session_token"), 
-                    self.state, 
-                    versionId=self.version_id
+                    self.client.api_key,
+                    session_data.get("session_token"),
+                    self.state,
+                    versionId=self.version_id,
                 )
             else:
                 # Use non-version ID flow
-                session_data = self.client.generate_session_without_versionId(request_token)
+                session_data = self.client.generate_session_without_versionId(
+                    request_token
+                )
                 access_token = self.client.get_access_token(
-                    self.client.api_key, 
-                    session_data.get("session_token"), 
-                    self.state
+                    self.client.api_key, session_data.get("session_token"), self.state
                 )
 
             if not access_token:
@@ -93,7 +102,7 @@ class SharekhanSessionManager:
         return self.client.login_url(
             vendor_key=vendor_key or self.client.vendor_key or "",
             version_id=self.version_id,
-            state=self.state
+            state=self.state,
         )
 
     def logout(self) -> None:

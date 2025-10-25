@@ -5,10 +5,12 @@ Replaces KiteConnect functionality with Sharekhan APIs
 
 import os
 import time
-from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 import requests
 from loguru import logger
+
 
 class SharekhanClient:
     """Sharekhan API client replacing KiteConnect functionality"""
@@ -32,17 +34,19 @@ class SharekhanClient:
             "trades": "/orders/trades",
             "history": "/market/history",
             "quote": "/market/quote",
-            "websocket": "/stream/websocket"
+            "websocket": "/stream/websocket",
         }
 
-    def login_url(self, vendor_key: str = "", version_id: str = "1005", state: str = "12345") -> str:
+    def login_url(
+        self, vendor_key: str = "", version_id: str = "1005", state: str = "12345"
+    ) -> str:
         """Generate login URL for Sharekhan authentication (matches SharekhanConnect API)"""
         params = {
             "api_key": self.api_key,
             "vendor_key": vendor_key or self.vendor_key or "",
             "version_id": version_id,
             "state": state,
-            "redirect_uri": "http://localhost:8080/auth/callback"
+            "redirect_uri": "http://localhost:8080/auth/callback",
         }
 
         url = f"{self.base_url}{self.endpoints['login']}"
@@ -53,14 +57,16 @@ class SharekhanClient:
         """Generate login URL for Sharekhan authentication (legacy method)"""
         return self.login_url(version_id=version_id)
 
-    def generate_session(self, request_token: str, secret_key: str = None) -> Dict[str, Any]:
+    def generate_session(
+        self, request_token: str, secret_key: str = None
+    ) -> Dict[str, Any]:
         """Generate session using request token (matches SharekhanConnect API)"""
         try:
             url = f"{self.base_url}{self.endpoints['session']}"
             payload = {
                 "api_key": self.api_key,
                 "request_token": request_token,
-                "secret_key": secret_key or self.secret_key
+                "secret_key": secret_key or self.secret_key,
             }
 
             response = requests.post(url, json=payload, timeout=30)
@@ -76,20 +82,20 @@ class SharekhanClient:
             logger.error(f"Failed to generate session: {e}")
             raise
 
-    def generate_session_without_versionId(self, request_token: str, secret_key: str = None) -> Dict[str, Any]:
+    def generate_session_without_versionId(
+        self, request_token: str, secret_key: str = None
+    ) -> Dict[str, Any]:
         """Generate session without version ID (matches SharekhanConnect API)"""
         return self.generate_session(request_token, secret_key)
 
-    def get_access_token(self, api_key: str, session: str, state: str, versionId: str = None) -> str:
+    def get_access_token(
+        self, api_key: str, session: str, state: str, versionId: str = None
+    ) -> str:
         """Get access token using session (matches SharekhanConnect API)"""
         try:
             url = f"{self.base_url}{self.endpoints['token']}"
-            payload = {
-                "api_key": api_key,
-                "session_token": session,
-                "state": state
-            }
-            
+            payload = {"api_key": api_key, "session_token": session, "state": state}
+
             if versionId:
                 payload["versionId"] = versionId
 
@@ -106,15 +112,20 @@ class SharekhanClient:
             logger.error(f"Failed to get access token: {e}")
             raise
 
-    def _make_request(self, method: str, endpoint: str, params: Optional[Dict] = None,
-                     data: Optional[Dict] = None) -> Dict[str, Any]:
+    def _make_request(
+        self,
+        method: str,
+        endpoint: str,
+        params: Optional[Dict] = None,
+        data: Optional[Dict] = None,
+    ) -> Dict[str, Any]:
         """Make authenticated API request"""
         if not self.access_token:
             raise ValueError("Access token not available. Please authenticate first.")
 
         headers = {
             "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
         url = f"{self.base_url}{endpoint}"
@@ -126,7 +137,7 @@ class SharekhanClient:
                 headers=headers,
                 params=params,
                 json=data,
-                timeout=30
+                timeout=30,
             )
             response.raise_for_status()
             return response.json()
@@ -140,7 +151,7 @@ class SharekhanClient:
         return {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json",
-            "X-API-Key": self.api_key
+            "X-API-Key": self.api_key,
         }
 
     # Trading Operations (matches SharekhanConnect API)
@@ -157,7 +168,7 @@ class SharekhanClient:
         order_id = orderparams.get("orderId")
         if not order_id:
             raise ValueError("orderId is required in orderparams")
-        
+
         endpoint = f"{self.endpoints['orders']}/{order_id}"
         return self._make_request("PUT", endpoint, data=orderparams)
 
@@ -171,7 +182,7 @@ class SharekhanClient:
         order_id = orderparams.get("orderId")
         if not order_id:
             raise ValueError("orderId is required in orderparams")
-        
+
         endpoint = f"{self.endpoints['orders']}/{order_id}"
         return self._make_request("DELETE", endpoint, data=orderparams)
 
@@ -199,36 +210,38 @@ class SharekhanClient:
 
     def exchange(self, exchange: str, customerId: str, orderId: str) -> Dict[str, Any]:
         """Get order details (matches SharekhanConnect API)"""
-        params = {
-            "exchange": exchange,
-            "customer_id": customerId,
-            "order_id": orderId
-        }
-        return self._make_request("GET", f"{self.endpoints['orders']}/details", params=params)
+        params = {"exchange": exchange, "customer_id": customerId, "order_id": orderId}
+        return self._make_request(
+            "GET", f"{self.endpoints['orders']}/details", params=params
+        )
 
-    def exchangetrades(self, exchange: str, customerId: str, orderId: str) -> List[Dict[str, Any]]:
+    def exchangetrades(
+        self, exchange: str, customerId: str, orderId: str
+    ) -> List[Dict[str, Any]]:
         """Get trades generated by an order (matches SharekhanConnect API)"""
-        params = {
-            "exchange": exchange,
-            "customer_id": customerId,
-            "order_id": orderId
-        }
-        result = self._make_request("GET", f"{self.endpoints['trades']}/by-order", params=params)
+        params = {"exchange": exchange, "customer_id": customerId, "order_id": orderId}
+        result = self._make_request(
+            "GET", f"{self.endpoints['trades']}/by-order", params=params
+        )
         return result.get("trades", [])
 
     # Market Data Operations (matches SharekhanConnect API)
-    def historicaldata(self, exchange: str, scripcode: str, interval: str) -> List[Dict[str, Any]]:
+    def historicaldata(
+        self, exchange: str, scripcode: str, interval: str
+    ) -> List[Dict[str, Any]]:
         """Get historical market data (matches SharekhanConnect API)"""
-        params = {
-            "exchange": exchange,
-            "scripcode": scripcode,
-            "interval": interval
-        }
+        params = {"exchange": exchange, "scripcode": scripcode, "interval": interval}
         result = self._make_request("GET", self.endpoints["history"], params=params)
         return result.get("data", [])
 
-    def historical_data(self, exchange: str, scrip_code: str, interval: str,
-                       from_date: datetime, to_date: datetime) -> List[Dict[str, Any]]:
+    def historical_data(
+        self,
+        exchange: str,
+        scrip_code: str,
+        interval: str,
+        from_date: datetime,
+        to_date: datetime,
+    ) -> List[Dict[str, Any]]:
         """Get historical market data (legacy method)"""
         return self.historicaldata(exchange, scrip_code, interval)
 

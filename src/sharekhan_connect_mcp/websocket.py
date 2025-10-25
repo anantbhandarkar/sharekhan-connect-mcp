@@ -5,17 +5,23 @@ Handles live market data feeds and real-time updates
 
 import asyncio
 import json
-import websockets
-from typing import Dict, List, Callable, Optional, Any
-from datetime import datetime
-from loguru import logger
 import threading
 import time
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional
+
+import websockets
+from loguru import logger
+
 
 class SharekhanWebSocketClient:
     """Sharekhan WebSocket client for live market data"""
 
-    def __init__(self, access_token: str, ws_url: str = "wss://api.sharekhan.com/v1/stream/websocket"):
+    def __init__(
+        self,
+        access_token: str,
+        ws_url: str = "wss://api.sharekhan.com/v1/stream/websocket",
+    ):
         self.access_token = access_token
         self.ws_url = ws_url
         self.websocket: Optional[websockets.WebSocketServerProtocol] = None
@@ -31,7 +37,7 @@ class SharekhanWebSocketClient:
             "quotes": [],
             "orders": [],
             "trades": [],
-            "errors": []
+            "errors": [],
         }
 
         # Thread management
@@ -48,7 +54,10 @@ class SharekhanWebSocketClient:
 
     def remove_callback(self, event_type: str, callback: Callable):
         """Remove callback for specific event types"""
-        if event_type in self.callback_handlers and callback in self.callback_handlers[event_type]:
+        if (
+            event_type in self.callback_handlers
+            and callback in self.callback_handlers[event_type]
+        ):
             self.callback_handlers[event_type].remove(callback)
             logger.info(f"Removed callback for {event_type}")
 
@@ -60,14 +69,11 @@ class SharekhanWebSocketClient:
             # Prepare connection headers
             headers = {
                 "Authorization": f"Bearer {self.access_token}",
-                "User-Agent": "Sharekhan-MCP-Server/1.0.0"
+                "User-Agent": "Sharekhan-MCP-Server/1.0.0",
             }
 
             self.websocket = await websockets.connect(
-                self.ws_url,
-                extra_headers=headers,
-                ping_interval=30,
-                ping_timeout=10
+                self.ws_url, extra_headers=headers, ping_interval=30, ping_timeout=10
             )
 
             self.is_connected = True
@@ -243,7 +249,9 @@ class SharekhanWebSocketClient:
 
         # Send subscription message in Sharekhan format
         await self.send_message(token_list)
-        logger.info(f"Subscribed to {token_list.get('key', 'unknown')} for {len(token_list.get('value', []))} instruments")
+        logger.info(
+            f"Subscribed to {token_list.get('key', 'unknown')} for {len(token_list.get('value', []))} instruments"
+        )
         return subscription_id
 
     async def fetchData(self, feed_data: Dict[str, Any]) -> None:
@@ -264,22 +272,24 @@ class SharekhanWebSocketClient:
         await self.send_message(unsubscribefeed)
         logger.info(f"Unsubscribed from {unsubscribefeed.get('key', 'unknown')}")
 
-    async def subscribe_legacy(self, subscription_type: str, instruments: List[str], params: Optional[Dict] = None):
+    async def subscribe_legacy(
+        self,
+        subscription_type: str,
+        instruments: List[str],
+        params: Optional[Dict] = None,
+    ):
         """Subscribe to market data (legacy method)"""
         token_list = {
             "action": "subscribe",
             "key": [subscription_type],
-            "value": instruments
+            "value": instruments,
         }
         return await self.subscribe(token_list)
 
     async def unsubscribe_legacy(self, subscription_id: str):
         """Unsubscribe from market data (legacy method)"""
         if subscription_id in self.subscriptions:
-            message = {
-                "action": "unsubscribe",
-                "subscription_id": subscription_id
-            }
+            message = {"action": "unsubscribe", "subscription_id": subscription_id}
 
             await self.send_message(message)
             del self.subscriptions[subscription_id]
@@ -295,7 +305,7 @@ class SharekhanWebSocketClient:
             message = {
                 "type": "subscribe",
                 "subscription_id": subscription_id,
-                "data": subscription_data
+                "data": subscription_data,
             }
             await self.send_message(message)
             logger.info(f"Resubscribed to {subscription_id}")
@@ -304,7 +314,9 @@ class SharekhanWebSocketClient:
         """Attempt to reconnect to WebSocket"""
         while self.reconnect_attempts < self.max_reconnect_attempts and self.should_run:
             self.reconnect_attempts += 1
-            logger.info(f"Attempting reconnection {self.reconnect_attempts}/{self.max_reconnect_attempts}")
+            logger.info(
+                f"Attempting reconnection {self.reconnect_attempts}/{self.max_reconnect_attempts}"
+            )
 
             await asyncio.sleep(self.reconnect_delay)
 
@@ -312,7 +324,9 @@ class SharekhanWebSocketClient:
                 logger.info("WebSocket reconnected successfully")
                 return
 
-        logger.error(f"Failed to reconnect after {self.max_reconnect_attempts} attempts")
+        logger.error(
+            f"Failed to reconnect after {self.max_reconnect_attempts} attempts"
+        )
 
     def start(self):
         """Start WebSocket connection in background thread"""

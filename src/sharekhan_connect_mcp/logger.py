@@ -4,8 +4,11 @@ Logging configuration for Sharekhan MCP Server
 
 import sys
 from pathlib import Path
+
 from loguru import logger
+
 from .config import Settings
+
 
 def setup_logging(settings: Settings) -> logger:
     """Setup structured logging with loguru"""
@@ -22,7 +25,7 @@ def setup_logging(settings: Settings) -> logger:
         sys.stdout,
         level=settings.log_level,
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-        colorize=True
+        colorize=True,
     )
 
     # File handler for persistent logs
@@ -33,7 +36,7 @@ def setup_logging(settings: Settings) -> logger:
         rotation="10 MB",
         retention="30 days",
         compression="zip",
-        serialize=False  # Set to True for JSON structured logging
+        serialize=False,  # Set to True for JSON structured logging
     )
 
     return logger

@@ -3,54 +3,71 @@ MCP Tools for Sharekhan Trading API
 Defines all available tools for AI agents
 """
 
-from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
-from pydantic import BaseModel, Field
+from typing import Any, Dict, List, Optional
+
 from loguru import logger
+from pydantic import BaseModel, Field
+
 from .client import SharekhanClient
 from .session import SharekhanSessionManager
+
 
 # Pydantic models for tool inputs
 class OrderInput(BaseModel):
     """Input model for placing orders"""
+
     exchange: str = Field(..., description="Exchange name (NSE, BSE)")
     scrip_code: str = Field(..., description="Security code")
     quantity: int = Field(..., description="Order quantity")
-    price: Optional[float] = Field(None, description="Order price (None for market orders)")
+    price: Optional[float] = Field(
+        None, description="Order price (None for market orders)"
+    )
     transaction_type: str = Field(..., description="BUY or SELL")
     order_type: str = Field(..., description="MARKET, LIMIT, SL, SL-M")
     product: str = Field(..., description="NRML, MIS, CNC")
     validity: str = Field("DAY", description="Order validity (DAY, IOC)")
     customer_id: str = Field("12345", description="Customer ID")
 
+
 class HoldingsInput(BaseModel):
     """Input model for getting holdings"""
+
     customer_id: str = Field("12345", description="Customer ID")
+
 
 class HistoricalDataInput(BaseModel):
     """Input model for historical data"""
+
     exchange: str = Field(..., description="Exchange name")
     scrip_code: str = Field(..., description="Security code")
     interval: str = Field(..., description="Time interval (1minute, 5minute, day)")
     from_date: str = Field(..., description="From date (YYYY-MM-DD)")
     to_date: str = Field(..., description="To date (YYYY-MM-DD)")
 
+
 class QuoteInput(BaseModel):
     """Input model for market quotes"""
+
     exchange: str = Field(..., description="Exchange name")
     scrip_code: str = Field(..., description="Security code")
 
+
 class ModifyOrderInput(BaseModel):
     """Input model for modifying orders"""
+
     order_id: str = Field(..., description="Order ID to modify")
     price: Optional[float] = Field(None, description="New price")
     quantity: Optional[int] = Field(None, description="New quantity")
     order_type: Optional[str] = Field(None, description="New order type")
 
+
 class SharekhanMCPTools:
     """MCP Tools for Sharekhan trading operations"""
 
-    def __init__(self, client: SharekhanClient, session_manager: SharekhanSessionManager):
+    def __init__(
+        self, client: SharekhanClient, session_manager: SharekhanSessionManager
+    ):
         self.client = client
         self.session_manager = session_manager
 
@@ -75,7 +92,7 @@ class SharekhanMCPTools:
                 "order_type": input_data.order_type,
                 "product": input_data.product,
                 "validity": input_data.validity,
-                "customer_id": input_data.customer_id
+                "customer_id": input_data.customer_id,
             }
 
             if input_data.price:
@@ -181,7 +198,9 @@ class SharekhanMCPTools:
             logger.error(f"Failed to get trades: {e}")
             return {"status": "error", "message": str(e)}
 
-    async def get_historical_data(self, input_data: HistoricalDataInput) -> Dict[str, Any]:
+    async def get_historical_data(
+        self, input_data: HistoricalDataInput
+    ) -> Dict[str, Any]:
         """Get historical market data"""
         try:
             if not self._ensure_authenticated():
@@ -195,7 +214,7 @@ class SharekhanMCPTools:
                 input_data.scrip_code,
                 input_data.interval,
                 from_date,
-                to_date
+                to_date,
             )
             logger.info(f"Retrieved {len(data)} historical data points")
             return {"status": "success", "data": data}
@@ -218,7 +237,9 @@ class SharekhanMCPTools:
             logger.error(f"Failed to get quote: {e}")
             return {"status": "error", "message": str(e)}
 
-    async def authenticate(self, request_token: str, customer_id: str = "12345") -> Dict[str, Any]:
+    async def authenticate(
+        self, request_token: str, customer_id: str = "12345"
+    ) -> Dict[str, Any]:
         """Authenticate with Sharekhan using request token"""
         try:
             success = self.session_manager.authenticate(request_token, customer_id)
