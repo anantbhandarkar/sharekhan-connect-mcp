@@ -1,0 +1,1 @@
+# sharekhan-connect-mcp
