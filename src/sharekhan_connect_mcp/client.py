@@ -103,8 +103,12 @@ class SharekhanClient:
             response.raise_for_status()
 
             token_data = response.json()
-            self.access_token = token_data.get("access_token")
+            access_token = token_data.get("access_token")
 
+            if not access_token:
+                raise ValueError("No access token in API response")
+
+            self.access_token = access_token
             logger.info("Access token obtained successfully")
             return self.access_token
 
