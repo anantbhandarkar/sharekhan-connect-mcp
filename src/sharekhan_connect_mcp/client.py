@@ -102,15 +102,15 @@ class SharekhanClient:
             response = requests.post(url, json=payload, timeout=30)
             response.raise_for_status()
 
-            token_data = response.json()
-            access_token = token_data.get("access_token")
+            token_data: Dict[str, Any] = response.json()
+            access_token: Optional[str] = token_data.get("access_token")
 
             if not access_token:
                 raise ValueError("No access token in API response")
 
             self.access_token = access_token
             logger.info("Access token obtained successfully")
-            return self.access_token
+            return access_token
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to get access token: {e}")
