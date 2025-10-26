@@ -1,7 +1,11 @@
 """Test to validate GitHub Actions versions are up-to-date."""
-import re
-import yaml
 from pathlib import Path
+
+try:
+    import yaml
+except ImportError:
+    yaml = None
+    pytest = None
 
 
 def test_github_actions_not_deprecated():

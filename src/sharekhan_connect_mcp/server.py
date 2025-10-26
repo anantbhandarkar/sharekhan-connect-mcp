@@ -301,13 +301,49 @@ class SharekhanMCPServer:
 
 def main() -> None:
     """Entry point for CLI and MCP invocation"""
+    import argparse
+
     from dotenv import load_dotenv
+
+    from . import __version__
+
+    # Parse arguments FIRST
+    parser = argparse.ArgumentParser(
+        description="Sharekhan MCP Server", prog="sharekhan-mcp"
+    )
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {__version__}"
+    )
+    parser.add_argument("--port", type=int, help="Server port (default: from config)")
+    parser.add_argument("--host", type=str, help="Server host (default: from config)")
+
+    args = parser.parse_args()
 
     # Load environment variables
     load_dotenv()
 
-    # Initialize settings
-    settings = Settings()  # type: ignore
+    # Initialize settings AFTER arg parsing
+    try:
+        settings = Settings()  # type: ignore
+    except Exception as e:
+        print(f"Error: Missing required configuration: {e}")
+        print("\nRequired environment variables:")
+        print("  - SHAREKHAN_API_KEY")
+        print("  - SHAREKHAN_SECRET_KEY")
+        print("  - SHAREKHAN_CUSTOMER_ID")
+        print("\nOptional environment variables:")
+        print("  - SHAREKHAN_VENDOR_KEY")
+        print("  - SHAREKHAN_VERSION_ID (default: 1005)")
+        print("  - SHAREKHAN_STATE (default: 12345)")
+        print("  - MCP_PORT (default: 8080)")
+        print("  - MCP_HOST (default: 0.0.0.0)")
+        sys.exit(1)
+
+    # Override settings with CLI args if provided
+    if args.port:
+        settings.mcp_port = args.port
+    if args.host:
+        settings.mcp_host = args.host
 
     # Setup logging
     logger = setup_logging(settings)

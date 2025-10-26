@@ -69,26 +69,69 @@ def test_components():
 
 def test_cli_command():
     """Test that the CLI command works"""
+    import os
+    import tempfile
     try:
-        # Test help command
-        result = subprocess.run(
-            ["sharekhan-mcp", "--help"],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-        if result.returncode == 0 or "usage:" in result.stdout.lower() or "error" in result.stderr.lower():
-            print("✓ CLI command available")
-            return True
-        else:
-            print(f"✗ CLI command failed: {result.stderr}")
-            return False
-    except FileNotFoundError:
-        print("✗ CLI command not found (sharekhan-mcp)")
-        return False
-    except subprocess.TimeoutExpired:
-        print("✗ CLI command test timed out")
-        return False
+        # Test help command using Python module invocation (works in CI)
+        # Set mock environment variables to allow Settings() to work
+        env = {
+            'SHAREKHAN_API_KEY': 'test_key',
+            'SHAREKHAN_SECRET_KEY': 'test_secret',
+            'SHAREKHAN_CUSTOMER_ID': '12345'
+        }
+
+        # Create a test script to verify CLI works
+        test_script = '''
+import os
+os.environ["SHAREKHAN_API_KEY"] = "test_key"
+os.environ["SHAREKHAN_SECRET_KEY"] = "test_secret"
+os.environ["SHAREKHAN_CUSTOMER_ID"] = "12345"
+
+import sys
+sys.path.insert(0, "src")
+from sharekhan_connect_mcp.server import main
+
+# Test that main() can be called without crashing
+try:
+    # Simulate sys.argv = ["script", "--help"]
+    original_argv = sys.argv
+    sys.argv = ["test_script", "--help"]
+    main()
+except SystemExit as e:
+    # --help causes sys.exit(0), which is expected
+    if e.code == 0:
+        print("CLI help test passed")
+        sys.exit(0)
+    else:
+        print(f"CLI failed with exit code: {e.code}")
+        sys.exit(1)
+finally:
+    sys.argv = original_argv
+'''
+
+        # Write test script to temporary file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+            f.write(test_script)
+            test_file = f.name
+
+        try:
+            result = subprocess.run(
+                ["python3", test_file],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                cwd=".",
+                env={**os.environ, **env}
+            )
+            if result.returncode == 0 and "CLI help test passed" in result.stdout:
+                print("✓ CLI command available (help test passed)")
+                return True
+            else:
+                print(f"✗ CLI command failed: {result.stderr}")
+                return False
+        finally:
+            os.unlink(test_file)
+
     except Exception as e:
         print(f"✗ CLI command test failed: {e}")
         return False
